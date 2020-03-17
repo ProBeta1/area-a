@@ -4,6 +4,10 @@ const gravatar = require("gravatar");
 const jwt = require("jsonwebtoken");
 const keys = require("../../config/keys");
 const passport = require("passport");
+
+//Load input validation
+const validatRegisterInput = require("../../validation/register");
+
 //Load user model
 const User = require("../../models/User");
 
@@ -12,9 +16,16 @@ const User = require("../../models/User");
 // @access Public
 
 router.post("/register", (req, res) => {
+  const { errors, isValid } = validatRegisterInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
   User.findOne({ email: req.body.email }).then(user => {
     if (user) {
-      return res.status(400).json({ email: "Email is already registered!" });
+      const errors = { email: "Email is already registered!" };
+      return res.status(400).json(errors);
     } else {
       // fetch the dp from the email , if it has one
       const avatar = gravatar.url(req.body.email, {
